@@ -2,37 +2,137 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>DuMont Order Rush</title>
+  <title>DuMont Dash v3</title>
   <style>
-    body { font-family: sans-serif; text-align: center; background: #fffaf0; }
-    h1 { color: #b22222; }
-    #orderBox, #scoreBox, #couponBox { margin: 20px; font-size: 20px; }
-    .item-btn { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
-    #couponBox { font-size: 22px; font-weight: bold; color: green; display: none; }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #f5f3eb 50%, #a3b18a 50%);
+      height: 100vh;
+    }
+    h1 {
+      color: #b22222;
+      margin: 10px 0;
+    }
+    #store {
+      background: rgba(255, 255, 255, 0.9);
+      width: 90%;
+      max-width: 600px;
+      margin: 20px auto;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    #customer {
+      transition: transform 1s ease-in-out;
+      margin-bottom: 10px;
+    }
+    .item-btn {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      background: #b22222;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #couponBox, #earningsBox, #pointsBox, #timerBox {
+      margin: 10px;
+      font-size: 18px;
+    }
+    #couponBox {
+      color: green;
+      font-weight: bold;
+      display: none;
+    }
+    #orderBox {
+      font-size: 20px;
+      margin: 10px;
+    }
   </style>
 </head>
 <body>
 
-  <h1>DuMont Order Rush</h1>
+  <h1>🍦 DuMont Dash v3 🍦</h1>
+  <div id="store">
+    <img id="customer" src="https://cdn-icons-png.flaticon.com/512/4202/4202840.png" width="100" />
+    <div id="orderBox">Waiting for customer...</div>
+    <div id="buttons"></div>
+    <div id="earningsBox">Earnings: $0</div>
+    <div id="pointsBox">DuMont Points: 0</div>
+    <div id="timerBox">Time left: --</div>
+    <div id="couponBox">🎉 You unlocked a 10% coupon! 🎉</div>
+  </div>
 
-  <div id="orderBox">Get ready for your first order!</div>
-  <div id="buttons"></div>
-  <div id="scoreBox">Score: 0</div>
-  <div id="couponBox">🎉 You earned a coupon! Use code: DUMONT10 🎉</div>
+  <audio id="bgMusic" src="background_music.mp3" loop autoplay></audio>
+  <audio id="dingSound" src="ding.mp3"></audio>
+  <audio id="cashSound" src="cash_register.mp3"></audio>
+  <audio id="wrongSound" src="wrong.mp3"></audio>
 
   <script>
     const menu = ["Choco Sundae", "Strawberry Swirl", "Vanilla Dream", "Mango Tango"];
     const buttonsDiv = document.getElementById("buttons");
     const orderBox = document.getElementById("orderBox");
-    const scoreBox = document.getElementById("scoreBox");
+    const earningsBox = document.getElementById("earningsBox");
+    const pointsBox = document.getElementById("pointsBox");
     const couponBox = document.getElementById("couponBox");
+    const timerBox = document.getElementById("timerBox");
+    const customerImg = document.getElementById("customer");
 
     let currentOrder = "";
-    let score = 0;
+    let earnings = 0;
+    let points = 0;
+    let timer;
+    let timeLeft = 0;
 
-    function newOrder() {
+    function playSound(id) {
+      document.getElementById(id).play();
+    }
+
+    function newCustomer() {
+      customerImg.style.transform = "translateX(0)";
       currentOrder = menu[Math.floor(Math.random() * menu.length)];
       orderBox.textContent = "Customer wants: " + currentOrder;
+      timeLeft = 10;
+      timerBox.textContent = "Time left: " + timeLeft;
+      timer = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      timerBox.textContent = "Time left: " + timeLeft;
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        orderBox.textContent = "Customer left! Missed order.";
+        playSound('wrongSound');
+        setTimeout(() => orderBox.textContent = "Waiting for customer...", 2000);
+        setTimeout(newCustomer, 3000);
+      }
+    }
+
+    function serveItem(selected) {
+      clearInterval(timer);
+      if (selected === currentOrder) {
+        earnings += 20;
+        playSound('cashSound');
+        orderBox.textContent = "Order served!";
+        earningsBox.textContent = "Earnings: $" + earnings;
+        points = Math.floor(earnings / 100);
+        pointsBox.textContent = "DuMont Points: " + points;
+        if (points > 0 && points % 10 === 0) {
+          couponBox.style.display = "block";
+          playSound('dingSound');
+        } else {
+          couponBox.style.display = "none";
+        }
+      } else {
+        playSound('wrongSound');
+        orderBox.textContent = "Oops! Wrong order.";
+      }
+      setTimeout(() => orderBox.textContent = "Waiting for customer...", 1500);
+      setTimeout(newCustomer, 2000);
     }
 
     function createButtons() {
@@ -45,22 +145,8 @@
       });
     }
 
-    function serveItem(selected) {
-      if (selected === currentOrder) {
-        score += 10;
-        scoreBox.textContent = "Score: " + score;
-        if (score >= 50) {
-          couponBox.style.display = "block";
-        }
-        newOrder();
-      } else {
-        alert("Oops! Wrong order.");
-      }
-    }
-
-    // Initialize game
     createButtons();
-    newOrder();
+    setTimeout(newCustomer, 1000);
   </script>
 
 </body>
