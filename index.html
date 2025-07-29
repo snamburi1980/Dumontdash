@@ -2,40 +2,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>DuMont Dash v3</title>
+  <title>DuMont Dash v4</title>
   <style>
     body {
       font-family: sans-serif;
       margin: 0;
       padding: 0;
-      background: linear-gradient(to bottom, #f5f3eb 50%, #a3b18a 50%);
-      height: 100vh;
+      background: url('https://tse4.mm.bing.net/th/id/OIP.ONkiY8QwMtEJcgSSfmLiEAHaFj?pid=Api') no-repeat center center fixed;
+      background-size: cover;
     }
     h1 {
       color: #b22222;
+      text-align: center;
       margin: 10px 0;
+      background: rgba(255, 255, 255, 0.8);
     }
     #store {
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.85);
       width: 90%;
-      max-width: 600px;
+      max-width: 650px;
       margin: 20px auto;
       border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
       padding: 20px;
+      text-align: center;
     }
     #customer {
-      transition: transform 1s ease-in-out;
+      width: 100px;
+      position: relative;
+      left: -120px;
+      animation: walkIn 2s forwards;
       margin-bottom: 10px;
     }
-    .item-btn {
-      padding: 10px 20px;
-      margin: 10px 5px;
-      font-size: 16px;
-      background: #b22222;
-      color: white;
-      border: none;
-      border-radius: 6px;
+    @keyframes walkIn {
+      to { left: 0px; }
+    }
+    .item-img {
+      width: 100px;
+      height: 100px;
+      margin: 10px;
+      border: 3px solid #b22222;
+      border-radius: 12px;
       cursor: pointer;
     }
     #couponBox, #earningsBox, #pointsBox, #timerBox {
@@ -55,9 +62,9 @@
 </head>
 <body>
 
-  <h1>🍦 DuMont Dash v3 🍦</h1>
+  <h1>🍦 DuMont Dash v4 🍦</h1>
   <div id="store">
-    <img id="customer" src="https://cdn-icons-png.flaticon.com/512/4202/4202840.png" width="100" />
+    <img id="customer" src="https://cdn-icons-png.flaticon.com/512/4202/4202840.png" />
     <div id="orderBox">Waiting for customer...</div>
     <div id="buttons"></div>
     <div id="earningsBox">Earnings: $0</div>
@@ -66,20 +73,20 @@
     <div id="couponBox">🎉 You unlocked a 10% coupon! 🎉</div>
   </div>
 
-  <audio id="bgMusic" src="background_music.mp3" loop autoplay></audio>
-  <audio id="dingSound" src="ding.mp3"></audio>
-  <audio id="cashSound" src="cash_register.mp3"></audio>
-  <audio id="wrongSound" src="wrong.mp3"></audio>
-
   <script>
-    const menu = ["Choco Sundae", "Strawberry Swirl", "Vanilla Dream", "Mango Tango"];
+    const menu = [
+      { name: "Choco Sundae", img: "https://cdn-icons-png.flaticon.com/512/1046/1046784.png" },
+      { name: "Strawberry Swirl", img: "https://cdn-icons-png.flaticon.com/512/2230/2230877.png" },
+      { name: "Vanilla Dream", img: "https://cdn-icons-png.flaticon.com/512/3153/3153786.png" },
+      { name: "Mango Tango", img: "https://cdn-icons-png.flaticon.com/512/1554/1554576.png" }
+    ];
+
     const buttonsDiv = document.getElementById("buttons");
     const orderBox = document.getElementById("orderBox");
     const earningsBox = document.getElementById("earningsBox");
     const pointsBox = document.getElementById("pointsBox");
     const couponBox = document.getElementById("couponBox");
     const timerBox = document.getElementById("timerBox");
-    const customerImg = document.getElementById("customer");
 
     let currentOrder = "";
     let earnings = 0;
@@ -87,14 +94,9 @@
     let timer;
     let timeLeft = 0;
 
-    function playSound(id) {
-      document.getElementById(id).play();
-    }
-
     function newCustomer() {
-      customerImg.style.transform = "translateX(0)";
       currentOrder = menu[Math.floor(Math.random() * menu.length)];
-      orderBox.textContent = "Customer wants: " + currentOrder;
+      orderBox.textContent = "Customer wants: " + currentOrder.name;
       timeLeft = 10;
       timerBox.textContent = "Time left: " + timeLeft;
       timer = setInterval(updateTimer, 1000);
@@ -106,29 +108,25 @@
       if (timeLeft <= 0) {
         clearInterval(timer);
         orderBox.textContent = "Customer left! Missed order.";
-        playSound('wrongSound');
         setTimeout(() => orderBox.textContent = "Waiting for customer...", 2000);
         setTimeout(newCustomer, 3000);
       }
     }
 
-    function serveItem(selected) {
+    function serveItem(item) {
       clearInterval(timer);
-      if (selected === currentOrder) {
+      if (item.name === currentOrder.name) {
         earnings += 20;
-        playSound('cashSound');
         orderBox.textContent = "Order served!";
         earningsBox.textContent = "Earnings: $" + earnings;
         points = Math.floor(earnings / 100);
         pointsBox.textContent = "DuMont Points: " + points;
         if (points > 0 && points % 10 === 0) {
           couponBox.style.display = "block";
-          playSound('dingSound');
         } else {
           couponBox.style.display = "none";
         }
       } else {
-        playSound('wrongSound');
         orderBox.textContent = "Oops! Wrong order.";
       }
       setTimeout(() => orderBox.textContent = "Waiting for customer...", 1500);
@@ -137,11 +135,12 @@
 
     function createButtons() {
       menu.forEach(item => {
-        const btn = document.createElement("button");
-        btn.textContent = item;
-        btn.className = "item-btn";
-        btn.onclick = () => serveItem(item);
-        buttonsDiv.appendChild(btn);
+        const img = document.createElement("img");
+        img.src = item.img;
+        img.className = "item-img";
+        img.alt = item.name;
+        img.onclick = () => serveItem(item);
+        buttonsDiv.appendChild(img);
       });
     }
 
